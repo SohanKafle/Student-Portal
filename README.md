@@ -15,6 +15,10 @@ Developed with ❤️ by **Sohan Kafle** 🌐 [Website](https://sohankafle.com.n
 
 ---
 
+## 🌐 Live Demo
+Check out the live demo of the Student Portal:  
+[Live Demo](https://sohankafle.github.io/Student-Portal/)
+
 ### 🛠️ Built With
 * **HTML5** & **Tailwind CSS** (Modern utility-first styling)
 * **Vanilla JavaScript (ES6+)** (DOM architecture & state management)
