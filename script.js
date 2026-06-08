@@ -21,11 +21,28 @@ const prevContact = document.getElementById('preview-contact');
 const prevPhone = document.getElementById('preview-phone');
 const prevGenderVal = document.getElementById('preview-gender-val');
 const prevQualVal = document.getElementById('preview-qual-val');
+const prevProficiencyVal = document.getElementById('preview-proficiency-val');
 const badgeDest = document.getElementById('badge-dest');
 const badgeScore = document.getElementById('badge-score');
 const prevHobbies = document.getElementById('preview-hobbies');
 const prevAvatar = document.getElementById('preview-avatar');
 const prevId = document.getElementById('preview-id');
+
+// -- HELPER FUNCTIONS --
+// Handles avatar URL generation with a true classic avatar profile placeholder
+function getAvatarUrl(gender) {
+    // For Males: Clean, active 'personas' vector pack
+    if (gender === 'Male') {
+        return `https://api.dicebear.com/9.x/personas/svg?seed=Felix&backgroundColor=transparent`;
+    } 
+    // For Females: Clean, active 'lorelei' vector pack
+    else if (gender === 'Female') {
+        return `https://api.dicebear.com/9.x/lorelei/svg?seed=Aneka&backgroundColor=transparent`;
+    }
+    
+    // A clean, friendly, neutral gray emoji face blueprint
+    return `https://api.dicebear.com/9.x/fun-emoji/svg?seed=neutral&mood=neutral&backgroundColor=334155`;
+}
 
 // -- NAVIGATION & AUTH LOGIC --
 function switchTab(tab) {
@@ -39,8 +56,8 @@ function switchTab(tab) {
         tabDirectory.classList.replace('text-white', 'text-slate-400');
         tabDirectory.classList.replace('bg-white/10', 'bg-transparent');
     } else if (tab === 'directory') {
-        viewRegister.classList.add('hidden');
         viewDirectory.classList.remove('hidden');
+        viewRegister.classList.add('hidden');
 
         tabDirectory.classList.replace('text-slate-400', 'text-white');
         tabDirectory.classList.replace('bg-transparent', 'bg-white/10');
@@ -65,115 +82,139 @@ function closeAdminLogin() {
     loginError.classList.add('hidden');
 }
 
-loginForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    const pass = document.getElementById('admin-password').value;
-    if (pass === ADMIN_PASSWORD) {
-        closeAdminLogin();
-        switchTab('directory');
-    } else {
-        loginError.classList.remove('hidden');
-    }
-});
-
-// -- LIVE PREVIEW LOGIC --
-function updatePreview() {
-    const nameVal = document.getElementById('name').value || 'Your Name';
-    const contactVal = document.getElementById('contact').value || 'email@example.com';
-    const phoneVal = document.getElementById('phone').value || '+1 (555) 000-0000';
-    const genderVal = document.getElementById('gender').value || '--';
-    const qualVal = document.getElementById('qualification').value || '--';
-    const examVal = document.getElementById('exam-type').value;
-    const scoreVal = document.getElementById('target-score').value;
-    const destVal = document.getElementById('destination').value;
-    const hobbiesVal = document.getElementById('hobbies').value;
-
-    // Direct text mappings
-    prevName.innerText = nameVal;
-    prevContact.innerText = contactVal;
-    prevPhone.innerText = phoneVal;
-    prevGenderVal.innerText = genderVal;
-    prevQualVal.innerText = qualVal;
-
-    // Dynamic Avatar generation based on name entry
-    const safeSeed = encodeURIComponent(nameVal);
-    prevAvatar.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${safeSeed}&backgroundColor=transparent`;
-
-    // Destination Pill Badge configuration
-    if (destVal) {
-        badgeDest.innerText = `Target: ${destVal}`;
-        badgeDest.className = 'bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[9px] px-2 py-0.5 rounded-full font-medium';
-    } else {
-        badgeDest.innerText = 'No Target Country';
-        badgeDest.className = 'bg-white/5 text-slate-400 border border-white/5 text-[9px] px-2 py-0.5 rounded-full font-medium';
-    }
-
-    // Score / Exam Pill Badge configuration
-    if (examVal && examVal !== 'None') {
-        badgeScore.innerText = `${examVal}: ${scoreVal || 'TBD'}`;
-        badgeScore.className = 'bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[9px] px-2 py-0.5 rounded-full font-medium';
-    } else if (examVal === 'None') {
-        badgeScore.innerText = 'No Exam Needed';
-        badgeScore.className = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] px-2 py-0.5 rounded-full font-medium';
-    } else {
-        badgeScore.innerText = 'Exam: --';
-        badgeScore.className = 'bg-white/5 text-slate-400 border border-white/5 text-[9px] px-2 py-0.5 rounded-full font-medium';
-    }
-
-    // Comma-separated Hobby Tag Builder
-    prevHobbies.innerHTML = '';
-    if (!hobbiesVal) {
-        prevHobbies.innerHTML = '<span class="bg-white/5 text-slate-400 text-[10px] px-2 py-0.5 rounded border border-white/5">Waiting for input...</span>';
-        return;
-    }
-
-    const tags = hobbiesVal.split(',').map(t => t.trim()).filter(t => t);
-    tags.forEach(tag => {
-        const span = document.createElement('span');
-        span.className = 'bg-cyan-500/10 text-cyan-300 text-[10px] font-medium px-2 py-0.5 rounded border border-cyan-500/20';
-        span.innerText = tag;
-        prevHobbies.appendChild(span);
+if (loginForm) {
+    loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const pass = document.getElementById('admin-password').value;
+        if (pass === ADMIN_PASSWORD) {
+            closeAdminLogin();
+            switchTab('directory');
+        } else {
+            loginError.classList.remove('hidden');
+        }
     });
 }
 
-// -- FORM SUBMISSION LOGIC --
-form.addEventListener('submit', function (e) {
-    e.preventDefault();
+// -- LIVE PREVIEW LOGIC --
+function updatePreview() {
+    const nameVal = document.getElementById('name')?.value || 'Your Name';
+    const contactVal = document.getElementById('contact')?.value || 'email@example.com';
+    const phoneVal = document.getElementById('phone')?.value || '+977 9800000000';
+    const genderVal = document.getElementById('gender')?.value || '--';
+    const qualVal = document.getElementById('qualification')?.value || '--';
+    const examVal = document.getElementById('exam-type')?.value || '';
+    const scoreVal = document.getElementById('target-score')?.value || '';
+    const destVal = document.getElementById('destination')?.value || '';
+    const hobbiesVal = document.getElementById('hobbies')?.value || '';
 
-    const generatedId = 'ID-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    // Text field updates
+    if (prevName) prevName.innerText = nameVal;
+    if (prevContact) prevContact.innerText = contactVal;
+    if (prevPhone) prevPhone.innerText = phoneVal;
+    if (prevGenderVal) prevGenderVal.innerText = genderVal;
+    if (prevQualVal) prevQualVal.innerText = qualVal;
 
-    // Creating data payload mapping all 10 custom requirements
-    const newStudent = {
-        id: generatedId,
-        name: document.getElementById('name').value.trim(),
-        contact: document.getElementById('contact').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
-        gender: document.getElementById('gender').value,
-        qualification: document.getElementById('qualification').value.trim(),
-        examType: document.getElementById('exam-type').value,
-        targetScore: document.getElementById('target-score').value.trim() || 'N/A',
-        destination: document.getElementById('destination').value,
-        hobbies: document.getElementById('hobbies').value.trim(),
-        description: document.getElementById('description').value.trim() || 'No description listed.',
-        dateAdded: new Date().toLocaleDateString()
-    };
-
-    students.push(newStudent);
-    localStorage.setItem('portal_students', JSON.stringify(students));
-
-    prevId.innerText = generatedId;
-    successOverlay.classList.remove('hidden');
-
-    // Smooth-scroll alignment view optimization on smaller screen monitors
-    if (window.innerWidth < 1024) {
-        document.getElementById('id-card-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (prevProficiencyVal) {
+        prevProficiencyVal.innerText = examVal && examVal !== 'None' ? `${examVal} Target` : '--';
     }
-});
+
+    // Direct assignment to clean endpoint strings
+    if (prevAvatar) {
+        prevAvatar.src = getAvatarUrl(genderVal);
+    }
+
+    // Destination Pill Badge configuration
+    if (badgeDest) {
+        if (destVal) {
+            badgeDest.innerText = `Target: ${destVal}`;
+            badgeDest.className = 'bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[9px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider';
+        } else {
+            badgeDest.innerText = 'No Target Country';
+            badgeDest.className = 'bg-white/5 text-slate-400 border border-white/5 text-[9px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider';
+        }
+    }
+
+    // Score / Exam Pill Badge configuration
+    if (badgeScore) {
+        if (examVal && examVal !== 'None') {
+            badgeScore.innerText = `${examVal}: ${scoreVal || 'TBD'}`;
+            badgeScore.className = 'bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[9px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider';
+        } else if (examVal === 'None') {
+            badgeScore.innerText = 'No Exam Needed';
+            badgeScore.className = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider';
+        } else {
+            badgeScore.innerText = 'Exam: --';
+            badgeScore.className = 'bg-white/5 text-slate-400 border border-white/5 text-[9px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider';
+        }
+    }
+
+    // Comma-separated Hobby Tag Builder
+    if (prevHobbies) {
+        prevHobbies.innerHTML = '';
+        if (!hobbiesVal.trim()) {
+            prevHobbies.innerHTML = '<span class="bg-white/5 text-slate-400 text-[10px] px-2.5 py-1 rounded-md border border-white/5">Waiting for input...</span>';
+            return;
+        }
+
+        const tags = hobbiesVal.split(',').map(t => t.trim()).filter(t => t);
+        tags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'bg-cyan-500/10 text-cyan-300 text-[10px] font-medium px-2.5 py-1 rounded-md border border-cyan-500/20';
+            span.innerText = tag;
+            prevHobbies.appendChild(span);
+        });
+    }
+}
+
+// Watch selection changes on form inputs
+document.getElementById('gender')?.addEventListener('change', updatePreview);
+document.getElementById('name')?.addEventListener('input', updatePreview);
+document.getElementById('contact')?.addEventListener('input', updatePreview);
+document.getElementById('phone')?.addEventListener('input', updatePreview);
+document.getElementById('qualification')?.addEventListener('input', updatePreview);
+document.getElementById('exam-type')?.addEventListener('change', updatePreview);
+document.getElementById('target-score')?.addEventListener('input', updatePreview);
+document.getElementById('destination')?.addEventListener('change', updatePreview);
+document.getElementById('hobbies')?.addEventListener('input', updatePreview);
+
+// -- FORM SUBMISSION LOGIC --
+if (form) {
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const generatedId = 'ID-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+
+        const newStudent = {
+            id: generatedId,
+            name: document.getElementById('name').value.trim(),
+            contact: document.getElementById('contact').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            gender: document.getElementById('gender').value,
+            qualification: document.getElementById('qualification').value.trim(),
+            examType: document.getElementById('exam-type').value,
+            targetScore: document.getElementById('target-score').value.trim() || 'N/A',
+            destination: document.getElementById('destination').value,
+            hobbies: document.getElementById('hobbies').value.trim(),
+            description: document.getElementById('description').value.trim() || 'No description listed.',
+            dateAdded: new Date().toLocaleDateString()
+        };
+
+        students.push(newStudent);
+        localStorage.setItem('portal_students', JSON.stringify(students));
+
+        if (prevId) prevId.innerText = generatedId;
+        if (successOverlay) successOverlay.classList.remove('hidden');
+
+        if (window.innerWidth < 1024) {
+            document.getElementById('id-card-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+}
 
 function resetRegistration() {
-    form.reset();
-    successOverlay.classList.add('hidden');
-    prevId.innerText = '#ID-PENDING';
+    if (form) form.reset();
+    if (successOverlay) successOverlay.classList.add('hidden');
+    if (prevId) prevId.innerText = '#ID-PENDING';
     updatePreview();
 }
 
@@ -181,7 +222,11 @@ function resetRegistration() {
 function updateDirectoryView() {
     const grid = document.getElementById('directory-grid');
     const emptyState = document.getElementById('empty-state');
-    document.getElementById('total-students').innerText = students.length;
+    const totalCountElem = document.getElementById('total-students');
+    
+    if (totalCountElem) totalCountElem.innerText = students.length;
+
+    if (!grid || !emptyState) return;
 
     if (students.length === 0) {
         grid.classList.add('hidden');
@@ -194,14 +239,13 @@ function updateDirectoryView() {
     grid.innerHTML = '';
 
     students.forEach(student => {
-        const avatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(student.name)}&backgroundColor=transparent`;
+        const avatarUrl = getAvatarUrl(student.gender);
 
         const hobbyHtml = student.hobbies.split(',')
             .map(h => h.trim()).filter(h => h)
             .map(h => `<span class="bg-cyan-500/10 text-cyan-300 text-[10px] font-medium px-2 py-0.5 rounded border border-cyan-500/20">${h}</span>`)
             .join('');
 
-        // Clean conditional badge output configurations inside the grid items
         const scoreBadgeHtml = student.examType !== 'None' 
             ? `<span class="bg-purple-500/10 text-purple-300 text-[10px] px-2 py-0.5 rounded border border-purple-500/20 font-medium">${student.examType}: ${student.targetScore}</span>`
             : `<span class="bg-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded border border-white/5 font-medium">No Exam</span>`;
@@ -264,3 +308,6 @@ window.deleteStudent = function (id) {
         updateDirectoryView();
     }
 };
+
+// Initialize the screen preview state once on document load
+updatePreview();
