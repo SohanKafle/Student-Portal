@@ -3,7 +3,7 @@ let students = JSON.parse(localStorage.getItem('portal_students')) || [];
 const ADMIN_PASSWORD = "admin123"; 
 
 // ⚠️ PASTE YOUR NEW DEPLOYMENT WEB APP URL HERE!
-const scriptURL = 'https://script.google.com/macros/s/AKfycbzw0xngGdoa4SB_7vKpbwdmDf1ZEHallunQg1dZ-hRIqYlTSqb-RnrPyAQkaE3YbljY/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxWsdFp7BZvRQtU44f2tAE1CVrkljuCXJtsME48AqJuJ7r-6eMZlT9iMMcRlpCK1-3F5w/exec';
 
 // -- DOM ELEMENTS --
 const form = document.getElementById('student-form');
@@ -17,6 +17,10 @@ const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
 const successOverlay = document.getElementById('success-overlay');
 
+// Custom Error Notification DOM mappings
+const errorOverlay = document.getElementById('error-overlay');
+const errorMessageText = document.getElementById('error-message-text');
+
 const prevName = document.getElementById('preview-name');
 const prevContact = document.getElementById('preview-contact');
 const prevPhone = document.getElementById('preview-phone');
@@ -27,7 +31,7 @@ const badgeDest = document.getElementById('badge-dest');
 const badgeScore = document.getElementById('badge-score');
 const prevHobbies = document.getElementById('preview-hobbies');
 const prevAvatar = document.getElementById('preview-avatar');
-const prevId = document.getElementById('preview-id'); // Holds the ID on the preview card
+const prevId = document.getElementById('preview-id');
 
 // -- HELPER FUNCTIONS --
 function getAvatarUrl(gender) {
@@ -84,6 +88,13 @@ if (loginForm) {
         }
     });
 }
+
+// -- CUSTOM POPUP DISPLAY LOGIC --
+window.closeErrorPopup = function() {
+    if (errorOverlay) {
+        errorOverlay.classList.add('hidden');
+    }
+};
 
 // -- LIVE PREVIEW LOGIC --
 function updatePreview() {
@@ -162,9 +173,8 @@ if (form) {
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.innerText;
         
-        // Let the user know the ID is actively calculating in the cloud
-        submitBtn.innerText = "Assigning Student ID...";
-        if (prevId) prevId.innerText = "GENERATING..."; 
+        submitBtn.innerText = "Verifying Credentials...";
+        if (prevId) prevId.innerText = "CHECKING..."; 
         submitBtn.disabled = true;
 
         const formData = new FormData();
@@ -183,9 +193,8 @@ if (form) {
             .then(response => response.json()) 
             .then(data => {
                 if (data.result === 'success') {
-                    const officialId = data.id; // Receives ID-1001, ID-1002, etc.
+                    const officialId = data.id; 
                     
-                    // FORCE the generated card display to immediately show this matching official ID
                     if (prevId) prevId.innerText = officialId;
 
                     const newStudent = {
@@ -203,7 +212,6 @@ if (form) {
                         dateAdded: new Date().toLocaleDateString()
                     };
 
-                    // Add to directory database array with matching ID
                     students.push(newStudent);
                     localStorage.setItem('portal_students', JSON.stringify(students));
 
@@ -213,16 +221,26 @@ if (form) {
                         document.getElementById('id-card-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 } else {
-                    throw new Error(data.message || "Spreadsheet processing exception.");
+                    // Triggers if duplicate email or contact matches on backend spreadsheet
+                    throw new Error(data.message || "An unexpected database processing error occurred.");
                 }
 
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
             })
             .catch(error => {
-                console.error('Error!', error.message);
-                alert("Database synchronization failed. Check connection parameters.");
-                if (prevId) prevId.innerText = "#ID-ERR";
+                console.error('Validation Error!', error.message);
+                
+                // INSTEAD OF NATIVE ALERT: Use custom glassmorphism overlay popup
+                if (errorOverlay && errorMessageText) {
+                    errorMessageText.innerText = error.message;
+                    errorOverlay.classList.remove('hidden');
+                } else {
+                    // Fail-safe default fallback in case element reference is broken
+                    alert(error.message);
+                }
+                
+                if (prevId) prevId.innerText = "#DUPLICATE";
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
             });
