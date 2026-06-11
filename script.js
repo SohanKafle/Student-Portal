@@ -116,6 +116,16 @@ function updatePreview() {
     if (prevProficiencyVal) prevProficiencyVal.innerText = examVal && examVal !== 'None' ? `${examVal} Target` : '--';
     if (prevAvatar) prevAvatar.src = getAvatarUrl(genderVal);
 
+    // Dynamic Pass Type Header Switch (STUDENT vs IELTS STUDENT / PTE STUDENT)
+    const passTypeElement = document.getElementById('preview-pass-type');
+    if (passTypeElement) {
+        if (examVal && examVal !== 'None') {
+            passTypeElement.innerText = `${examVal.toUpperCase()} STUDENT`;
+        } else {
+            passTypeElement.innerText = 'STUDENT';
+        }
+    }
+
     if (badgeDest) {
         if (destVal) {
             badgeDest.innerText = `Target: ${destVal}`;
@@ -336,4 +346,5 @@ window.deleteStudent = function (id) {
     }
 };
 
+// Initial update call to render default preview configurations on mount
 updatePreview();
