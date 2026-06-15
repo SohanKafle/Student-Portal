@@ -32,6 +32,8 @@ const badgeScore = document.getElementById('badge-score');
 const prevHobbies = document.getElementById('preview-hobbies');
 const prevAvatar = document.getElementById('preview-avatar');
 const prevId = document.getElementById('preview-id');
+// Added Address Preview Element Mapping
+const prevAddress = document.getElementById('preview-address');
 
 // -- HELPER FUNCTIONS --
 function getAvatarUrl(gender) {
@@ -101,6 +103,7 @@ function updatePreview() {
     const nameVal = document.getElementById('name')?.value || 'Your Name';
     const contactVal = document.getElementById('contact')?.value || 'email@example.com';
     const phoneVal = document.getElementById('phone')?.value || '+977 9800000000';
+    const addressVal = document.getElementById('address')?.value || 'Not specified'; // Address logic
     const genderVal = document.getElementById('gender')?.value || '--';
     const qualVal = document.getElementById('qualification')?.value || '--';
     const examVal = document.getElementById('exam-type')?.value || '';
@@ -111,12 +114,12 @@ function updatePreview() {
     if (prevName) prevName.innerText = nameVal;
     if (prevContact) prevContact.innerText = contactVal;
     if (prevPhone) prevPhone.innerText = phoneVal;
+    if (prevAddress) prevAddress.innerText = addressVal; // Update Address Preview
     if (prevGenderVal) prevGenderVal.innerText = genderVal;
     if (prevQualVal) prevQualVal.innerText = qualVal;
     if (prevProficiencyVal) prevProficiencyVal.innerText = examVal && examVal !== 'None' ? `${examVal} Target` : '--';
     if (prevAvatar) prevAvatar.src = getAvatarUrl(genderVal);
 
-    // Dynamic Pass Type Header Switch (STUDENT vs IELTS STUDENT / PTE STUDENT)
     const passTypeElement = document.getElementById('preview-pass-type');
     if (passTypeElement) {
         if (examVal && examVal !== 'None') {
@@ -169,6 +172,7 @@ document.getElementById('gender')?.addEventListener('change', updatePreview);
 document.getElementById('name')?.addEventListener('input', updatePreview);
 document.getElementById('contact')?.addEventListener('input', updatePreview);
 document.getElementById('phone')?.addEventListener('input', updatePreview);
+document.getElementById('address')?.addEventListener('input', updatePreview); // Address listener
 document.getElementById('qualification')?.addEventListener('input', updatePreview);
 document.getElementById('exam-type')?.addEventListener('change', updatePreview);
 document.getElementById('target-score')?.addEventListener('input', updatePreview);
@@ -179,10 +183,8 @@ document.getElementById('hobbies')?.addEventListener('input', updatePreview);
 if (form) {
     form.addEventListener('submit', function (e) {
         e.preventDefault();
-
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.innerText;
-        
         submitBtn.innerText = "Verifying Credentials...";
         if (prevId) prevId.innerText = "CHECKING..."; 
         submitBtn.disabled = true;
@@ -191,6 +193,7 @@ if (form) {
         formData.append('name', document.getElementById('name').value.trim());
         formData.append('email', document.getElementById('contact').value.trim());
         formData.append('phone', document.getElementById('phone').value.trim());
+        formData.append('address', document.getElementById('address').value.trim()); // Added Address
         formData.append('gender', document.getElementById('gender').value);
         formData.append('qualification', document.getElementById('qualification').value.trim());
         formData.append('exam', document.getElementById('exam-type').value);
@@ -204,14 +207,13 @@ if (form) {
             .then(data => {
                 if (data.result === 'success') {
                     const officialId = data.id; 
-                    
                     if (prevId) prevId.innerText = officialId;
-
                     const newStudent = {
                         id: officialId,
                         name: formData.get('name'),
                         contact: formData.get('email'),
                         phone: formData.get('phone'),
+                        address: formData.get('address'), // Added Address
                         gender: formData.get('gender'),
                         qualification: formData.get('qualification'),
                         examType: formData.get('exam'),
@@ -221,35 +223,21 @@ if (form) {
                         description: formData.get('description'),
                         dateAdded: new Date().toLocaleDateString()
                     };
-
                     students.push(newStudent);
                     localStorage.setItem('portal_students', JSON.stringify(students));
-
                     if (successOverlay) successOverlay.classList.remove('hidden');
-
-                    if (window.innerWidth < 1024) {
-                        document.getElementById('id-card-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
+                    if (window.innerWidth < 1024) document.getElementById('id-card-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else {
-                    // Triggers if duplicate email or contact matches on backend spreadsheet
                     throw new Error(data.message || "An unexpected database processing error occurred.");
                 }
-
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
             })
             .catch(error => {
-                console.error('Validation Error!', error.message);
-                
-                // INSTEAD OF NATIVE ALERT: Use custom glassmorphism overlay popup
                 if (errorOverlay && errorMessageText) {
                     errorMessageText.innerText = error.message;
                     errorOverlay.classList.remove('hidden');
-                } else {
-                    // Fail-safe default fallback in case element reference is broken
-                    alert(error.message);
-                }
-                
+                } else { alert(error.message); }
                 if (prevId) prevId.innerText = "#DUPLICATE";
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
@@ -277,22 +265,13 @@ function updateDirectoryView() {
         emptyState.classList.remove('hidden');
         return;
     }
-
     grid.classList.remove('hidden');
     emptyState.classList.add('hidden');
     grid.innerHTML = '';
-
     students.forEach(student => {
         const avatarUrl = getAvatarUrl(student.gender);
-        const hobbyHtml = student.hobbies.split(',')
-            .map(h => h.trim()).filter(h => h)
-            .map(h => `<span class="bg-cyan-500/10 text-cyan-300 text-[10px] font-medium px-2 py-0.5 rounded border border-cyan-500/20">${h}</span>`)
-            .join('');
-
-        const scoreBadgeHtml = student.examType !== 'None' 
-            ? `<span class="bg-purple-500/10 text-purple-300 text-[10px] px-2 py-0.5 rounded border border-purple-500/20 font-medium">${student.examType}: ${student.targetScore}</span>`
-            : `<span class="bg-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded border border-white/5 font-medium">No Exam</span>`;
-
+        const hobbyHtml = student.hobbies.split(',').map(h => h.trim()).filter(h => h).map(h => `<span class="bg-cyan-500/10 text-cyan-300 text-[10px] font-medium px-2 py-0.5 rounded border border-cyan-500/20">${h}</span>`).join('');
+        const scoreBadgeHtml = student.examType !== 'None' ? `<span class="bg-purple-500/10 text-purple-300 text-[10px] px-2 py-0.5 rounded border border-purple-500/20 font-medium">${student.examType}: ${student.targetScore}</span>` : `<span class="bg-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded border border-white/5 font-medium">No Exam</span>`;
         const cardHTML = `
             <div class="glass-panel p-5 sm:p-6 rounded-3xl card-hover relative overflow-hidden group flex flex-col justify-between min-h-[340px]">
                 <div class="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-cyan-500/5 rounded-full blur-3xl -mr-10 -mt-10 transition-all group-hover:bg-cyan-500/10"></div>
@@ -312,24 +291,19 @@ function updateDirectoryView() {
                     <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 bg-black/10 p-2.5 rounded-xl border border-white/5 mb-4">
                         <div><span class="text-slate-500 block text-[9px] uppercase font-semibold">Gender</span>${student.gender}</div>
                         <div><span class="text-slate-500 block text-[9px] uppercase font-semibold">Destination</span><span class="text-blue-300 font-medium">${student.destination}</span></div>
+                        <div class="col-span-2"><span class="text-slate-500 block text-[9px] uppercase font-semibold">Address</span><span class="truncate block">${student.address || 'N/A'}</span></div>
                         <div class="col-span-2"><span class="text-slate-500 block text-[9px] uppercase font-semibold">Education Qualification</span><span class="truncate block">${student.qualification}</span></div>
                     </div>
-                    <div class="mb-4 text-xs text-slate-400 line-clamp-2 bg-slate-900/40 p-2 rounded-lg italic border-l-2 border-cyan-500/30">
-                        "${student.description}"
-                    </div>
+                    <div class="mb-4 text-xs text-slate-400 line-clamp-2 bg-slate-900/40 p-2 rounded-lg italic border-l-2 border-cyan-500/30">"${student.description}"</div>
                 </div>
                 <div class="pt-3 border-t border-white/5 relative z-10 mt-auto">
                     <div class="flex justify-between items-center gap-2 mb-2">
                         <p class="text-[9px] uppercase text-slate-500 font-semibold tracking-wider">Interests</p>
                         ${scoreBadgeHtml}
                     </div>
-                    <div class="flex flex-wrap gap-1 max-h-[48px] overflow-hidden pr-6">
-                        ${hobbyHtml || '<span class="text-[11px] text-slate-600">None listed</span>'}
-                    </div>
+                    <div class="flex flex-wrap gap-1 max-h-[48px] overflow-hidden pr-6">${hobbyHtml || '<span class="text-[11px] text-slate-600">None listed</span>'}</div>
                     <button onclick="deleteStudent('${student.id}')" class="absolute bottom-0 right-0 text-slate-600 hover:text-red-400 transition-colors z-20 p-1" title="Delete Profile">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 </div>
             </div>
@@ -346,5 +320,4 @@ window.deleteStudent = function (id) {
     }
 };
 
-// Initial update call to render default preview configurations on mount
 updatePreview();

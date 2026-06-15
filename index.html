@@ -64,10 +64,8 @@
 <body
     class="bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-950 via-slate-950 to-black min-h-screen text-slate-200 flex flex-col">
 
-    <!-- Navbar: Streamlined & Compact -->
     <nav
         class="glass-panel sticky top-0 z-40 px-6 py-2.5 flex items-center justify-between shadow-lg backdrop-blur-md h-14">
-        <!-- Logo Section: Reduced sizing for a crisp look -->
         <div class="flex items-center gap-2">
             <div
                 class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-white text-[11px] tracking-wider shadow-md shadow-cyan-500/10">
@@ -76,7 +74,6 @@
             <h1 class="text-sm font-semibold text-white tracking-wide">NextGen Portal</h1>
         </div>
 
-        <!-- Tab Switcher: Scaled down to match navbar height -->
         <div class="flex bg-black/40 p-0.5 rounded-lg border border-white/5 shadow-inner">
             <button onclick="switchTab('register')" id="tab-register"
                 class="px-3.5 py-1.5 rounded-md text-[11px] font-medium bg-white/10 text-white transition-all shadow">
@@ -222,6 +219,14 @@
 
                             <div>
                                 <label
+                                    class="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Address</label>
+                                <input type="text" id="address" required placeholder="Your Full Address"
+                                    oninput="updatePreview()"
+                                    class="w-full px-4 py-3 text-sm bg-black/30 border border-white/10 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none text-white transition-all placeholder-slate-700 shadow-inner">
+                            </div>
+
+                            <div>
+                                <label
                                     class="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Gender</label>
                                 <select id="gender" required onchange="updatePreview()"
                                     class="w-full px-4 py-3 text-sm bg-slate-950 border border-white/10 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none text-white transition-all shadow-inner">
@@ -340,7 +345,6 @@
 
                         <div
                             class="flex flex-col items-center text-center relative z-10 mb-6 pb-6 border-b border-white/10">
-                            <!-- Handled initial load via script to eliminate empty broken-image icons -->
                             <img id="preview-avatar" src="" alt="Avatar"
                                 class="w-24 h-24 rounded-full border-4 border-white/5 shadow-2xl mb-3 bg-black/40 object-contain p-1.5 transition-transform duration-500 hover:scale-105">
                             <h3 class="text-2xl font-bold text-white mb-1 break-words w-full px-2 tracking-tight"
@@ -362,8 +366,8 @@
 
                         <div class="relative z-10 text-xs space-y-2.5 text-slate-300">
                             <div class="flex justify-between items-center"><span
-                                    class="text-slate-500 font-medium uppercase text-[10px] tracking-wider">Gender:</span><span
-                                    id="preview-gender-val" class="font-medium">--</span></div>
+                                    class="text-slate-500 font-medium uppercase text-[10px] tracking-wider">Address:</span><span
+                                    id="preview-address" class="font-medium truncate max-w-[180px]">--</span></div>
                             <div class="flex justify-between items-center"><span
                                     class="text-slate-500 font-medium uppercase text-[10px] tracking-wider">Education:</span><span
                                     id="preview-qual-val" class="font-medium truncate max-w-[200px]">--</span></div>
