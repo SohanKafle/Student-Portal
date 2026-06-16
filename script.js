@@ -3,7 +3,7 @@ let students = JSON.parse(localStorage.getItem('portal_students')) || [];
 const ADMIN_PASSWORD = "admin123"; 
 
 // ⚠️ PASTE YOUR NEW DEPLOYMENT WEB APP URL HERE!
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxWsdFp7BZvRQtU44f2tAE1CVrkljuCXJtsME48AqJuJ7r-6eMZlT9iMMcRlpCK1-3F5w/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbyRNyJ4zw5D5tAkzA-0nKlnZsNR72fsJO06x7DAjug0vXg1wHJ6B9AbKeeyYDO8H1X_kw/exec';
 
 // -- DOM ELEMENTS --
 const form = document.getElementById('student-form');
@@ -32,7 +32,6 @@ const badgeScore = document.getElementById('badge-score');
 const prevHobbies = document.getElementById('preview-hobbies');
 const prevAvatar = document.getElementById('preview-avatar');
 const prevId = document.getElementById('preview-id');
-// Added Address Preview Element Mapping
 const prevAddress = document.getElementById('preview-address');
 
 // -- HELPER FUNCTIONS --
@@ -91,7 +90,6 @@ if (loginForm) {
     });
 }
 
-// -- CUSTOM POPUP DISPLAY LOGIC --
 window.closeErrorPopup = function() {
     if (errorOverlay) {
         errorOverlay.classList.add('hidden');
@@ -102,8 +100,8 @@ window.closeErrorPopup = function() {
 function updatePreview() {
     const nameVal = document.getElementById('name')?.value || 'Your Name';
     const contactVal = document.getElementById('contact')?.value || 'email@example.com';
-    const phoneVal = document.getElementById('phone')?.value || '+977 9800000000';
-    const addressVal = document.getElementById('address')?.value || 'Not specified'; // Address logic
+    const phoneVal = document.getElementById('phone')?.value || '+977 98XXXXXXXX';
+    const addressVal = document.getElementById('address')?.value || '--'; 
     const genderVal = document.getElementById('gender')?.value || '--';
     const qualVal = document.getElementById('qualification')?.value || '--';
     const examVal = document.getElementById('exam-type')?.value || '';
@@ -114,7 +112,7 @@ function updatePreview() {
     if (prevName) prevName.innerText = nameVal;
     if (prevContact) prevContact.innerText = contactVal;
     if (prevPhone) prevPhone.innerText = phoneVal;
-    if (prevAddress) prevAddress.innerText = addressVal; // Update Address Preview
+    if (prevAddress) prevAddress.innerText = addressVal; 
     if (prevGenderVal) prevGenderVal.innerText = genderVal;
     if (prevQualVal) prevQualVal.innerText = qualVal;
     if (prevProficiencyVal) prevProficiencyVal.innerText = examVal && examVal !== 'None' ? `${examVal} Target` : '--';
@@ -168,16 +166,46 @@ function updatePreview() {
     }
 }
 
+// -- EVENT LISTENERS --
 document.getElementById('gender')?.addEventListener('change', updatePreview);
 document.getElementById('name')?.addEventListener('input', updatePreview);
 document.getElementById('contact')?.addEventListener('input', updatePreview);
 document.getElementById('phone')?.addEventListener('input', updatePreview);
-document.getElementById('address')?.addEventListener('input', updatePreview); // Address listener
+document.getElementById('address')?.addEventListener('input', updatePreview); 
 document.getElementById('qualification')?.addEventListener('input', updatePreview);
-document.getElementById('exam-type')?.addEventListener('change', updatePreview);
-document.getElementById('target-score')?.addEventListener('input', updatePreview);
 document.getElementById('destination')?.addEventListener('change', updatePreview);
 document.getElementById('hobbies')?.addEventListener('input', updatePreview);
+
+// Dynamic Dropdown Population Listener
+document.getElementById('exam-type')?.addEventListener('change', function () {
+    const targetScore = document.getElementById('target-score');
+    if (!targetScore) return;
+
+    // Reset options
+    targetScore.innerHTML = '<option value="" disabled selected hidden>Select Score</option>';
+
+    if (this.value === 'IELTS') {
+    // Generates IELTS Bands 1.0 through 9.0 (increments of 0.5)
+    for (let i = 1.0; i <= 9.0; i += 0.5) {
+        let option = document.createElement('option');
+        option.value = `Band ${i.toFixed(1)}`;
+        option.text = `Band ${i.toFixed(1)}`;
+        targetScore.appendChild(option);
+    }
+} else if (this.value === 'PTE') {
+    // Generates PTE Global standard range (10 through 90)
+    for (let i = 10; i <= 90; i++) {
+        let option = document.createElement('option');
+        option.value = `Score ${i}`; 
+        option.text = `Score ${i}`;  
+        targetScore.appendChild(option);
+    }
+}
+    updatePreview();
+});
+
+// Listens to the newly generated targeted score options selection
+document.getElementById('target-score')?.addEventListener('change', updatePreview);
 
 // -- DATABASE & FORM SUBMISSION LOGIC --
 if (form) {
@@ -193,7 +221,7 @@ if (form) {
         formData.append('name', document.getElementById('name').value.trim());
         formData.append('email', document.getElementById('contact').value.trim());
         formData.append('phone', document.getElementById('phone').value.trim());
-        formData.append('address', document.getElementById('address').value.trim()); // Added Address
+        formData.append('address', document.getElementById('address').value.trim()); 
         formData.append('gender', document.getElementById('gender').value);
         formData.append('qualification', document.getElementById('qualification').value.trim());
         formData.append('exam', document.getElementById('exam-type').value);
@@ -213,7 +241,7 @@ if (form) {
                         name: formData.get('name'),
                         contact: formData.get('email'),
                         phone: formData.get('phone'),
-                        address: formData.get('address'), // Added Address
+                        address: formData.get('address'), 
                         gender: formData.get('gender'),
                         qualification: formData.get('qualification'),
                         examType: formData.get('exam'),
@@ -249,6 +277,8 @@ function resetRegistration() {
     if (form) form.reset();
     if (successOverlay) successOverlay.classList.add('hidden');
     if (prevId) prevId.innerText = '#ID-PENDING';
+    const targetScore = document.getElementById('target-score');
+    if (targetScore) targetScore.innerHTML = '<option value="" disabled selected hidden>Select Exam First</option>';
     updatePreview();
 }
 

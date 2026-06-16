@@ -98,7 +98,7 @@
                 class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                    </path>
+                        </path>
                 </svg>
             </button>
             <div
@@ -263,9 +263,10 @@
                                 <label
                                     class="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Targeted
                                     Score</label>
-                                <input type="text" id="target-score" placeholder="e.g., Band 8.0 / 79"
-                                    oninput="updatePreview()"
-                                    class="w-full px-4 py-3 text-sm bg-black/30 border border-white/10 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none text-white transition-all placeholder-slate-700 shadow-inner">
+                                <select id="target-score" required onchange="updatePreview()"
+                                    class="w-full px-4 py-3 text-sm bg-slate-950 border border-white/10 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none text-white transition-all shadow-inner">
+                                    <option value="" disabled selected hidden>Select Exam First</option>
+                                </select>
                             </div>
 
                             <div>
@@ -448,10 +449,10 @@
         </div>
     </footer>
 
+
     <script src="script.js"></script>
     <script>
         document.getElementById('currentYear').textContent = new Date().getFullYear();
-        // Fire initialization right when DOM processes to establish the placeholder card graphics setup properly
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof updatePreview === 'function') {
                 updatePreview();
